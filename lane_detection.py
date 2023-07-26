@@ -27,7 +27,8 @@ class Line:
         if self.y1 == self.y2:
             return None
         else:
-            return ((self.slope * self.x1) - self.y1) / self.slope
+            # return ((self.slope * self.x1) - self.y1) / self.slope
+            return round(((1080 - self.y1) / self.slope) + self.x1, 0)
 
     def get_points(self) -> list[int, int, int, int]:
         return [self.x1, self.y1, self.x2, self.y2]
