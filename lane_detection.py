@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import math
 from sklearn.cluster import DBSCAN
 
+
 class Line:
-    def __init__(self, x1, y1, x2, y2):
+    def __init__(self, x1: int, y1: int, x2: int, y2: int):
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
@@ -16,24 +17,25 @@ class Line:
         self.slope = self.calculate_slope()
         self.x_intercept = self.calculate_x_intercept()
 
-    def calculate_slope(self):
+    def calculate_slope(self) -> float:
         if self.x1 == self.x2:
             return None
         else:
             return (self.y2 - self.y1) / (self.x2 - self.x1)
-        
-    def calculate_x_intercept(self):
+
+    def calculate_x_intercept(self) -> float:
         if self.y1 == self.y2:
             return None
         else:
             return ((self.slope * self.x1) - self.y1) / self.slope
-        
-    def get_points(self):
+
+    def get_points(self) -> list[int, int, int, int]:
         return [self.x1, self.y1, self.x2, self.y2]
-        
+
+
 def detect_lines(
     img, threshold1=50, threshold2=150, apertureSize=3, minLineLength=100, maxLineGap=10
-):
+) -> list[Line]:
     """Takes an image and parameters to detect lines.
 
     Args:
@@ -59,17 +61,17 @@ def detect_lines(
         minLineLength=minLineLength,
         maxLineGap=maxLineGap,
     )  # detect lines
-    line_objs = [Line(line[0][0], line[0][1],line[0][2],line[0][3]) for line in lines]
+    line_objs = [Line(line[0][0], line[0][1], line[0][2], line[0][3]) for line in lines]
     return line_objs
 
 
-def draw_lines(img, lines, color=(0, 255, 0)):
+def draw_lines(img, lines: list[Line], color: tuple[int, int, int] = (0, 255, 0)):
     for line in lines:
         cv2.line(img, (line.x1, line.y1), (line.x2, line.y2), color, 10)
-    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return img
 
 
-def get_slopes_intercepts(lines):
+def get_slopes_intercepts(lines: list[Line]) -> tuple[list[float], list[int]]:
     slopes = []
     intercepts = []
     for line in lines:
@@ -78,7 +80,7 @@ def get_slopes_intercepts(lines):
     return (slopes, intercepts)
 
 
-def merge_colinear_lines(lines):
+def merge_colinear_lines(lines: list[Line]) -> list[Line]:
     """
     Attempts to merge colinear lines.
     """
@@ -104,41 +106,36 @@ def merge_colinear_lines(lines):
     for label, cluster_lines in grouped_lines.items():
         # (slopes, _) = get_slopes_intercepts(cluster_lines)
         # average_slope = np.mean(slopes)
-        merged_lines.append(cluster_lines.get_points())
+        merged_lines.append(cluster_lines[0])
 
     return merged_lines
 
 
-def detect_lanes(lines):
+def detect_lanes(lines: list[Line], width: int = 1920) -> list[tuple[Line, Line]]:
+    center = width / 2
+    center_lane_tol = 0.5
+    parallel_tol = 0.5
+    x_intercept_tol = 250
     lanes = []
     lines.sort(key=lambda x: x.x_intercept)
-
     for i, line1 in enumerate(lines[:-1]):
         line2 = lines[i + 1]
-        if math.isclose(line1.slope, -1 * lines2.slope):
+        # get the pixels between line1 and line2, and check if they are dark
+        if math.isclose(line1.slope, -1 * line2.slope, rel_tol=center_lane_tol):
+            # lines are a lane near the center
+            lanes.append((line1, line2))
 
-
-    for i, (intercept, line1) in enumerate(intercepts_and_lines[:-1]):
-        line2 = intercepts_and_lines[i + 1]
-        if math.isclose(line1.slope, line2.slope)
-
-    # first compare the second line to the first and third.
-    # if it closer to the first, then make that a lane. Then, each subsuquent pair, 3rd and 4th, 5th and 6th
-    # If it is closer to the third, then make that a lane.
-    # find the first lane
-    if len(intercepts_and_lines) >= 3:
-        (intercept, line) = intercepts_and_lines[1]
-        gap1 = abs(intercept - intercepts_and_lines[0][0])
-        gap2 = abs(intercepts_and_lines[2][0] - intercept)
-        if gap1 > gap2:
-            lanes.append((intercepts_and_lines[0][1], line))
-            start_index = 2
-        else:
-            lanes.append((line, intercepts_and_lines[2][1]))
-            start_index = 3
-    for i, (intercept, line) in enumerate(intercepts_and_lines[start_index:-1]):
-        lanes.append((line, intercepts_and_lines[i + 1][1]))
-
+        elif math.isclose(line1.slope, line2.slope, rel_tol=parallel_tol):
+            # slopes are close to parallel
+            if math.isclose(
+                line1.x_intercept, line2.x_intercept, rel_tol=x_intercept_tol
+            ):
+                # x-intercepts are close
+                if ((line1.x_intercept > center) and (line2.x_intercept > center)) or (
+                    (line1.x_intercept < center) and (line2.x_intercept < center)
+                ):
+                    # the lines are probably a pair
+                    lanes.append((line1, line2))
     return lanes
 
 
