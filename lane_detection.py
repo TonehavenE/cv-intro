@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import math
 import lane_following
+from random import randrange
 from sklearn.cluster import DBSCAN
 
 
@@ -52,6 +53,7 @@ def detect_lines(
         the list of lines (list)
     """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # convert to grayscale
+    # blurred_img = cv2.GaussianBlur(gray, (9, 9), 0)
     edges = cv2.Canny(
         gray, threshold1, threshold2, apertureSize=apertureSize
     )  # detect edges
@@ -69,7 +71,7 @@ def detect_lines(
 
 def draw_lines(img, lines: list[Line], color: tuple[int, int, int] = (0, 255, 0)):
     for line in lines:
-        cv2.line(img, (line.x1, line.y1), (line.x2, line.y2), color, 10)
+        cv2.line(img, (line.x1, line.y1), (line.x2, line.y2), color, 3)
     return img
 
 
@@ -112,6 +114,31 @@ def merge_colinear_lines(lines: list[Line]) -> list[Line]:
 
     return merged_lines
 
+def toby_lines(lines: list[Line]) -> list[Line]:
+    cleaned_lines = []
+    for line in lines:
+        can_add = True
+        for cleaned_line in cleaned_lines:
+            if abs(cleaned_line.slope - line.slope) < 0.5:
+                can_add = False
+
+        if can_add:
+            cleaned_lines.append(line)
+    # DONE MERGING LINES
+    #------
+    # DELETE LINES NOT PART OF A LANE
+
+    sorted_lines = cleaned_lines
+    sorted_lines.sort(key=lambda x: x.x_intercept)
+    one_to_zero = sorted_lines[1].x_intercept - sorted_lines[0].x_intercept
+    two_to_one = sorted_lines[2].x_intercept - sorted_lines[1].x_intercept
+    if(two_to_one < one_to_zero):
+        sorted_lines.pop(0)
+    if len(sorted_lines) % 2 != 0:
+        sorted_lines.pop(len(sorted_lines) - 1)
+    # DONE DELETING LINES NOT IN LANE
+    #------
+    return lines
 
 def detect_lanes(lines: list[Line], width: int = 1920) -> list[tuple[Line, Line]]:
     center = width / 2
@@ -149,12 +176,9 @@ def detect_lanes(lines: list[Line], width: int = 1920) -> list[tuple[Line, Line]
 def draw_lanes(img, lanes):
     drawn_img = img
     lines = []
-    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
-    color_index = 0
     for lane in lanes:
         lane_lines = []
         for line in lane:
             lane_lines.append(line)
-        drawn_img = draw_lines(drawn_img, lane_lines, colors[color_index % 3])
-        color_index += 1
+        drawn_img = draw_lines(drawn_img, lane_lines, (randrange(255),randrange(255),randrange(255)))
     return drawn_img
