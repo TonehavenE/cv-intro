@@ -39,12 +39,19 @@ def recommend_direction(x_intercept, slope, width=1920) -> str:
 
     if x_intercept > mid_right:
         # the lane center is right of the middle,
-        return "right"
+        strafe_direction = "right"
 
     elif x_intercept < mid_left:
         # the lane center is left of the middle
-        return "left"
+        strafe_direction = "left"
 
     else:
         # the lane center is in the middle region
-        return "forward"
+        strafe_direction = "forward"
+    
+    if 1/slope > 0:
+        print("turn left")
+    if 1/slope < 0:
+        print("turn right")
+
+    return strafe_direction
