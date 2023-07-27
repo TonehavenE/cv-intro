@@ -35,7 +35,7 @@ def recommend_direction(x_intercept, slope, width=1920) -> str:
     mid = width / 2
     mid_left = mid - forward_tol
     mid_right = mid + forward_tol
-    print(f"Center x_intercept: {x_intercept = }")
+    print(f"Center x_intercept: {x_intercept}")
 
     if x_intercept > mid_right:
         # the lane center is right of the middle,

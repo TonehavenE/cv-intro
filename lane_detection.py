@@ -147,8 +147,14 @@ def detect_lanes(lines: list[Line], width: int = 1920) -> list[tuple[Line, Line]
 
 
 def draw_lanes(img, lanes):
+    drawn_img = img
     lines = []
+    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+    color_index = 0
     for lane in lanes:
+        lane_lines = []
         for line in lane:
-            lines.append(line)
-    return draw_lines(img, lines)
+            lane_lines.append(line)
+        drawn_img = draw_lines(drawn_img, lane_lines, colors[color_index % 3])
+        color_index += 1
+    return drawn_img
