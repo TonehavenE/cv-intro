@@ -12,7 +12,6 @@ def get_lane_center(lanes):
         x_intercepts.append((line1.x_intercept + line2.x_intercept) / 2)
         slopes.append((line1.slope + line2.slope) / 2)
 
-    print(f"{x_intercepts = }")
     # Find the midpoint of ALL the lanes
     lanes_midpoint = (min(x_intercepts) + max(x_intercepts)) / 2
     # Find the index of the x-intercept that is closest to lanes_midpoint
@@ -36,7 +35,7 @@ def recommend_direction(x_intercept, slope, width=1920) -> str:
     mid = width / 2
     mid_left = mid - forward_tol
     mid_right = mid + forward_tol
-    print(f"From recommend direction: {x_intercept = }")
+    print(f"Center x_intercept: {x_intercept = }")
 
     if x_intercept > mid_right:
         # the lane center is right of the middle,

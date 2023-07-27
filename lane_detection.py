@@ -3,32 +3,33 @@ Detect lines/lanes
 """
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 import math
+import lane_following
 from sklearn.cluster import DBSCAN
 
 
 class Line:
+    img_height = 1080
     def __init__(self, x1: int, y1: int, x2: int, y2: int):
-        self.x1 = x1
-        self.y1 = y1
-        self.x2 = x2
-        self.y2 = y2
+        self.x1 = int(x1)
+        self.y1 = int(y1)
+        self.x2 = int(x2)
+        self.y2 = int(y2)
         self.slope = self.calculate_slope()
         self.x_intercept = self.calculate_x_intercept()
 
     def calculate_slope(self) -> float:
         if self.x1 == self.x2:
-            return None
+            return np.power(10, 10)
         else:
             return (self.y2 - self.y1) / (self.x2 - self.x1)
 
     def calculate_x_intercept(self) -> float:
         if self.y1 == self.y2:
-            return None
+            return np.inf
         else:
             # return ((self.slope * self.x1) - self.y1) / self.slope
-            return round(((1080 - self.y1) / self.slope) + self.x1, 0)
+            return round(((self.img_height - self.y1) / self.slope) + self.x1, 0)
 
     def get_points(self) -> list[int, int, int, int]:
         return [self.x1, self.y1, self.x2, self.y2]
@@ -56,9 +57,9 @@ def detect_lines(
     )  # detect edges
     lines = cv2.HoughLinesP(
         edges,
-        1,
-        np.pi / 180,
-        100,
+        rho=1,
+        theta=np.pi / 180,
+        threshold=100,
         minLineLength=minLineLength,
         maxLineGap=maxLineGap,
     )  # detect lines
@@ -119,24 +120,29 @@ def detect_lanes(lines: list[Line], width: int = 1920) -> list[tuple[Line, Line]
     x_intercept_tol = 250
     lanes = []
     lines.sort(key=lambda x: x.x_intercept)
-    for i, line1 in enumerate(lines[:-1]):
-        line2 = lines[i + 1]
-        # get the pixels between line1 and line2, and check if they are dark
-        if math.isclose(line1.slope, -1 * line2.slope, rel_tol=center_lane_tol):
-            # lines are a lane near the center
-            lanes.append((line1, line2))
 
-        elif math.isclose(line1.slope, line2.slope, rel_tol=parallel_tol):
-            # slopes are close to parallel
-            if math.isclose(
-                line1.x_intercept, line2.x_intercept, rel_tol=x_intercept_tol
-            ):
-                # x-intercepts are close
-                if ((line1.x_intercept > center) and (line2.x_intercept > center)) or (
-                    (line1.x_intercept < center) and (line2.x_intercept < center)
+    for i in range(len(lines[:-1])):
+        line1 = lines[i]
+        for j in range(i+1, len(lines[:-1])):
+            line2 = lines[j]
+
+            if math.isclose(line1.slope, -1 * line2.slope, rel_tol=center_lane_tol):
+                # lines are a lane near the center
+                lanes.append((line1, line2))
+                break # line 1 has a match with line 2, so pick a new line 1
+
+            elif math.isclose(line1.slope, line2.slope, rel_tol=parallel_tol):
+                # slopes are close to parallel
+                if math.isclose(
+                    line1.x_intercept, line2.x_intercept, rel_tol=x_intercept_tol
                 ):
-                    # the lines are probably a pair
-                    lanes.append((line1, line2))
+                    # x-intercepts are close
+                    if ((line1.x_intercept > center) and (line2.x_intercept > center)) or (
+                        (line1.x_intercept < center) and (line2.x_intercept < center)
+                    ):
+                        # the lines are probably a pair
+                        lanes.append((line1, line2))
+                        break # found a pair, so start a new
     return lanes
 
 
