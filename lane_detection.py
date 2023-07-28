@@ -70,9 +70,10 @@ def detect_lines(
 
 
 def draw_lines(img, lines: list[Line], color: tuple[int, int, int] = (0, 255, 0)):
+    to_draw = img.copy()
     for line in lines:
-        cv2.line(img, (line.x1, line.y1), (line.x2, line.y2), color, 3)
-    return img
+        cv2.line(to_draw, (line.x1, line.y1), (line.x2, line.y2), color, 3)
+    return to_draw
 
 
 def get_slopes_intercepts(lines: list[Line]) -> tuple[list[float], list[int]]:
@@ -140,36 +141,32 @@ def toby_lines(lines: list[Line]) -> list[Line]:
     #------
     return lines
 
-def detect_lanes(lines: list[Line], width: int = 1920) -> list[tuple[Line, Line]]:
+def detect_lanes(lines: list[Line], height: int = 1080, width: int = 1920, center_lane_tol = 0.5, parallel_tol = 0.5, x_intercept_tol = 250) -> list[tuple[Line, Line]]:
     center = width / 2
-    center_lane_tol = 0.5
-    parallel_tol = 0.5
-    x_intercept_tol = 250
     lanes = []
     lines.sort(key=lambda x: x.x_intercept)
 
     for i in range(len(lines[:-1])):
         line1 = lines[i]
-        for j in range(i+1, len(lines[:-1])):
-            line2 = lines[j]
+        line2 = lines[i + 1]
 
-            if math.isclose(line1.slope, -1 * line2.slope, rel_tol=center_lane_tol):
-                # lines are a lane near the center
-                lanes.append((line1, line2))
-                break # line 1 has a match with line 2, so pick a new line 1
+        if math.isclose(line1.slope, -1 * line2.slope, rel_tol=center_lane_tol):
+            # lines are a lane near the center
+            lanes.append((line1, line2))
+            break # line 1 has a match with line 2, so pick a new line 1
 
-            elif math.isclose(line1.slope, line2.slope, rel_tol=parallel_tol):
-                # slopes are close to parallel
-                if math.isclose(
-                    line1.x_intercept, line2.x_intercept, rel_tol=x_intercept_tol
+        elif math.isclose(line1.slope, line2.slope, rel_tol=parallel_tol):
+            # slopes are close to parallel
+            if math.isclose(
+                line1.x_intercept, line2.x_intercept, rel_tol=x_intercept_tol
+            ):
+                # x-intercepts are close
+                if ((line1.x_intercept > center) and (line2.x_intercept > center)) or (
+                    (line1.x_intercept < center) and (line2.x_intercept < center)
                 ):
-                    # x-intercepts are close
-                    if ((line1.x_intercept > center) and (line2.x_intercept > center)) or (
-                        (line1.x_intercept < center) and (line2.x_intercept < center)
-                    ):
-                        # the lines are probably a pair
-                        lanes.append((line1, line2))
-                        break # found a pair, so start a new
+                    # the lines are probably a pair
+                    lanes.append((line1, line2))
+                    break # found a pair, so start a new
     return lanes
 
 
