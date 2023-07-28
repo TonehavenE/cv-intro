@@ -1,5 +1,9 @@
 """
 Detect lines/lanes
+
+First, let's define the target workflow:
+You are given a frame, which is an image from the AUV of the pool.
+The image can be read using cv2.imread
 """
 import cv2
 import numpy as np
@@ -7,7 +11,6 @@ import math
 import lane_following
 from random import randrange
 from sklearn.cluster import DBSCAN
-
 
 class Line:
     img_height = 1080
@@ -18,6 +21,7 @@ class Line:
         self.y2 = int(y2)
         self.slope = self.calculate_slope()
         self.x_intercept = self.calculate_x_intercept()
+        self.line = np.vectorize(self.line_eq)
 
     def calculate_slope(self) -> float:
         if self.x1 == self.x2:
@@ -34,6 +38,9 @@ class Line:
 
     def get_points(self) -> list[int, int, int, int]:
         return [self.x1, self.y1, self.x2, self.y2]
+    
+    def line_eq(self, X):
+        return self.slope * (X - self.x1) + self.y1
 
 
 def detect_lines(
@@ -44,7 +51,7 @@ def detect_lines(
     Args:
         img (result of cv2.imread()): the image to process
         threshold1 (int, optional): the first threshold for the Canny edge detector. Defaults to 50.
-        threshold2 (int, optional): the second threshold for the Canny edge detector. Defaults to 150.
+        threshold2 (int, optional): the second thlane_detection.pyreshold for the Canny edge detector. Defaults to 150.
         apertureSize (int, optional): the aperture size for the Sobel operator. Defaults to 3.
         minLineLength (int, optional): the minimum length of a line. Defaults to 100.
         maxLineGap (int, optional): the maximum gap between two points to be considered in the same line. Defaults to 10.
@@ -52,10 +59,10 @@ def detect_lines(
     Returns:
         the list of lines (list)
     """
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # convert to grayscale
-    # blurred_img = cv2.GaussianBlur(gray, (9, 9), 0)
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # convert to grayscale
+    blurred_img = cv2.GaussianBlur(img, (13, 13), 100)
     edges = cv2.Canny(
-        gray, threshold1, threshold2, apertureSize=apertureSize
+        blurred_img, threshold1, threshold2, apertureSize=apertureSize
     )  # detect edges
     lines = cv2.HoughLinesP(
         edges,
@@ -85,17 +92,18 @@ def get_slopes_intercepts(lines: list[Line]) -> tuple[list[float], list[int]]:
     return (slopes, intercepts)
 
 
-def merge_colinear_lines(lines: list[Line]) -> list[Line]:
+def merge_colinear_lines(lines: list[Line], width=1920) -> list[Line]:
     """
     Attempts to merge colinear lines.
     """
-    (slopes, _) = get_slopes_intercepts(lines)
+    slopes = [line.slope for line in lines]
     slopes = np.array(slopes).reshape(-1, 1)  # convert slopes to a 2d array
 
     # DBSCAN clustering to group colinear lines
     # `eps` is the maximum distance between two samples for them to be part of the same cluster
     # `min_samples` is the minimum number of samples for something to become its own cluster
-    dbscan = DBSCAN(eps=0.1, min_samples=2)
+    slope_tolerance = 0.5
+    dbscan = DBSCAN(eps=slope_tolerance, min_samples=2)
     labels = dbscan.fit_predict(slopes)  # labels is a list of clusters, basically
 
     # Group lines based on the cluster labels
@@ -106,12 +114,21 @@ def merge_colinear_lines(lines: list[Line]) -> list[Line]:
             grouped_lines[label] = []
         grouped_lines[label].append(line)
 
-    # Calculate the average slope for each cluster
+    # Calculate the average line for each cluster
     merged_lines = []
     for label, cluster_lines in grouped_lines.items():
-        # (slopes, _) = get_slopes_intercepts(cluster_lines)
-        # average_slope = np.mean(slopes)
-        merged_lines.append(cluster_lines[0])
+        # x1 = np.mean([line.x1 for line in cluster_lines])
+        # y1 = np.mean([line.y1 for line in cluster_lines])
+        # x2 = np.mean([line.x2 for line in cluster_lines])
+        # y2 = np.mean([line.y2 for line in cluster_lines])
+        x = [line.x1 for line in cluster_lines] + [line.x2 for line in cluster_lines]
+        y = [line.y1 for line in cluster_lines] + [line.y2 for line in cluster_lines]
+        a, b = np.polyfit(x, y, 1)
+
+        x = [0, width]
+        y = [a * x[0] + b, a * x[1] + b]
+        merged_line = Line(x[0], y[0], x[1], y[1])
+        merged_lines.append(merged_line)
 
     return merged_lines
 
