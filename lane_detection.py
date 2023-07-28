@@ -22,6 +22,7 @@ class Line:
         self.slope = self.calculate_slope()
         self.x_intercept = self.calculate_x_intercept()
         self.line = np.vectorize(self.line_eq)
+        self.paired = False
 
     def calculate_slope(self) -> float:
         if self.x1 == self.x2:
@@ -41,6 +42,9 @@ class Line:
     
     def line_eq(self, X):
         return self.slope * (X - self.x1) + self.y1
+
+    def is_paired(self):
+        return self.paired
 
 
 def detect_lines(
@@ -76,7 +80,9 @@ def detect_lines(
     return line_objs
 
 
-def draw_lines(img, lines: list[Line], color: tuple[int, int, int] = (0, 255, 0)):
+def draw_lines(img, lines: list[Line], color: tuple[int, int, int] = (0, 255, 0), random = False):
+    if random:
+        color = (randrange(127, 255), randrange(127, 255), randrange(127, 255))
     to_draw = img.copy()
     for line in lines:
         cv2.line(to_draw, (line.x1, line.y1), (line.x2, line.y2), color, 3)
@@ -189,7 +195,6 @@ def detect_lanes(lines: list[Line], height: int = 1080, width: int = 1920, cente
 
 def draw_lanes(img, lanes):
     drawn_img = img
-    lines = []
     for lane in lanes:
         lane_lines = []
         for line in lane:
