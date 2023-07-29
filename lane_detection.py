@@ -5,16 +5,18 @@ First, let's define the target workflow:
 You are given a frame, which is an image from the AUV of the pool.
 The image can be read using cv2.imread
 """
+import math
+from random import randrange
+
 import cv2
 import numpy as np
-import math
-import lane_following
-from random import randrange
 from sklearn.cluster import DBSCAN
+
+import lane_following
 
 
 class Line:
-    img_height = 1080
+    img_height = int(1080/2)
 
     def __init__(self, x1: int, y1: int, x2: int, y2: int):
         self.x1 = int(x1)
@@ -23,27 +25,39 @@ class Line:
         self.y2 = int(y2)
         self.slope = self.calculate_slope()
         self.x_intercept = self.calculate_x_intercept()
-        self.line = np.vectorize(self.line_eq)
+        self.x_of = np.vectorize(self.x)
+        self.y_of = np.vectorize(self.y)
+        self.y_intercept = self.y_of(0)
         self.paired = False
 
     def calculate_slope(self) -> float:
         if self.x1 == self.x2:
             return np.power(10, 10)
+        elif self.y1 == self.y2:
+            return 0.00000000000001
         else:
             return (self.y2 - self.y1) / (self.x2 - self.x1)
 
     def calculate_x_intercept(self) -> float:
         if self.y1 == self.y2:
-            return np.inf
+            return 10000000
         else:
             # return ((self.slope * self.x1) - self.y1) / self.slope
             return round(((self.img_height - self.y1) / self.slope) + self.x1, 0)
 
     def get_points(self) -> list[int, int, int, int]:
         return [self.x1, self.y1, self.x2, self.y2]
-
-    def line_eq(self, X):
-        return self.slope * (X - self.x1) + self.y1
+    
+    def y(self, x):
+        # y - y1 = m(x - x1)
+        # y = m(x - x1) + y1
+        return self.slope * (x - self.x1) + self.y1
+    
+    def x(self, y):
+        # y - y1 = mx - mx1
+        # mx = y - y1 + mx1
+        # x = ((y - y1) / m) + x1
+        return ((y - self.y1) / self.slope) + self.x1
 
     def is_paired(self):
         return self.paired
