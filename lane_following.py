@@ -1,57 +1,92 @@
 import numpy as np
 
-
-def get_lane_center(lanes):
-    """Get the center slope and x-intercept of the line closest to the center"""
-    slopes = []
-    x_intercepts = []
-
-    # Find the mean x-intercept and slope of each lane
-    for lane in lanes:
-        (line1, line2) = (lane[0], lane[1])
-        x_intercepts.append((line1.x_intercept + line2.x_intercept) / 2)
-        slopes.append((line1.slope + line2.slope) / 2)
-
-    # Find the midpoint of ALL the lanes
-    lanes_midpoint = (min(x_intercepts) + max(x_intercepts)) / 2
-    # Find the index of the x-intercept that is closest to lanes_midpoint
-    x_array = np.asarray(x_intercepts)
-    index = (np.abs(x_array - lanes_midpoint)).argmin()
-    return (slopes[index], x_intercepts[index])
+from Line import *
 
 
-def recommend_direction(x_intercept, slope, width=1920) -> str:
-    """Recommend a direction for the AUV to travel in.
+def merge_lane_lines(lanes: list[tuple[Line, Line]], height: int) -> list[Line]:
+    """Combines the lines of each lane to produce a single center line for each.
 
     Args:
-        x_intercept (_type_): the x-intercept
-        slope (_type_): the slope of the line
-        width (int, optional): the width of the image. Defaults to 1920.
+        lanes (list[tuple[Line, Line]]): the list of lanes
+        height (int): the height of the image
 
     Returns:
-        str: the string recommending the direction
+        list[Line]: the list of center lines
     """
-    forward_tol = 200
+    center_lines = []  # output list
+    for lane in lanes:
+        # the center line is defined as the line between the midpoint of the x-intercepts and the midpoint of the intercepts with the top of the image
+        center_lines.append(
+            Line(
+                (lane[0].x_intercept + lane[1].x_intercept) / 2,
+                height,
+                (lane[0].x(0) + lane[1].x(0)) / 2,
+                0,
+            )
+        )
+    return center_lines
+
+def pick_center_line(center_lines: list[Line], width: int) -> Line:
+    """Picks the center line (line closest to center of image) from a list of lines
+
+    Args:
+        center_lines (list[Line]): the list of lines
+        width (int): width of the image
+
+    Returns:
+        Line: the line closest to center
+    """
+    def closest(lines: list[Line], k: int) -> Line:
+        """The element in the list closest to `k`.
+
+        Args:
+            lines (list[Line]): the list of lines
+            k (int): the value to compare against
+
+        Returns:
+            Line: the Line with an x-intercept closest to `k`
+        """
+        if len(lines) > 0:
+            x = np.asarray([line.x_intercept for line in lines])
+            idx = (np.abs(x - k)).argmin()
+            return lines[idx]
+    
+    closest_line = closest(center_lines, width/2)
+    return closest_line
+
+def suggest_direction(line: Line, width: int, forward_tol: int = 50) -> tuple[str, str]:
+    """Suggests which direction the AUV should move in based off a line.
+
+    Args:
+        line (Line): the center of the lane closest to the AUV
+        width (int): the width of the image
+        forward_tol (int, optional): the number of pixels around the middle where the AUV should continue straight. Defaults to 50.
+
+    Returns:
+        tuple[str, str]: (movement_direction, turn_direction)
+    """
     mid = width / 2
     mid_left = mid - forward_tol
     mid_right = mid + forward_tol
-    print(f"Center x_intercept: {x_intercept}")
+
+    x_intercept = line.x_intercept
+    slope = line.slope
 
     if x_intercept > mid_right:
         # the lane center is right of the middle,
-        strafe_direction = "right"
+        movement_direction = "right"
 
     elif x_intercept < mid_left:
         # the lane center is left of the middle
-        strafe_direction = "left"
+        movement_direction = "left"
 
     else:
         # the lane center is in the middle region
-        strafe_direction = "forward"
-    
-    if 1/slope > 0:
-        print("turn left")
-    if 1/slope < 0:
-        print("turn right")
+        movement_direction = "forward"
 
-    return strafe_direction
+    if 1/slope > 0:
+        turn_direction = "counter-clockwise"
+    if 1/slope < 0:
+        turn_direction = "clockwise"
+
+    return (movement_direction, turn_direction)
