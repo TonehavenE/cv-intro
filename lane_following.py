@@ -1,3 +1,5 @@
+from math import isclose
+
 import numpy as np
 
 from Line import *
@@ -6,11 +8,11 @@ from Line import *
 def merge_lane_lines(lanes: list[tuple[Line, Line]], height: int) -> list[Line]:
     """Combines the lines of each lane to produce a single center line for each.
 
-    Args:
+    ### Parameters
         lanes (list[tuple[Line, Line]]): the list of lanes
         height (int): the height of the image
 
-    Returns:
+    ### Returns
         list[Line]: the list of center lines
     """
     center_lines = []  # output list
@@ -29,21 +31,21 @@ def merge_lane_lines(lanes: list[tuple[Line, Line]], height: int) -> list[Line]:
 def pick_center_line(center_lines: list[Line], width: int) -> Line:
     """Picks the center line (line closest to center of image) from a list of lines
 
-    Args:
+    ### Parameters
         center_lines (list[Line]): the list of lines
         width (int): width of the image
 
-    Returns:
+    ### Returns
         Line: the line closest to center
     """
     def closest(lines: list[Line], k: int) -> Line:
         """The element in the list closest to `k`.
 
-        Args:
+        ### Parameters
             lines (list[Line]): the list of lines
             k (int): the value to compare against
 
-        Returns:
+        ### Returns
             Line: the Line with an x-intercept closest to `k`
         """
         if len(lines) > 0:
@@ -54,23 +56,27 @@ def pick_center_line(center_lines: list[Line], width: int) -> Line:
     closest_line = closest(center_lines, width/2)
     return closest_line
 
-def suggest_direction(line: Line, width: int, forward_tol: int = 50) -> tuple[str, str]:
+def suggest_direction(line: Line, width: int, forward_tol: int = 50, angle_tol: int = 5) -> tuple[str, str]:
     """Suggests which direction the AUV should move in based off a line.
 
-    Args:
+    ### Parameters
         line (Line): the center of the lane closest to the AUV
         width (int): the width of the image
         forward_tol (int, optional): the number of pixels around the middle where the AUV should continue straight. Defaults to 50.
+        angle_tol (int, optional): the range of angles that are considered straight.
 
-    Returns:
+    ### Returns
         tuple[str, str]: (movement_direction, turn_direction)
     """
     mid = width / 2
     mid_left = mid - forward_tol
     mid_right = mid + forward_tol
 
-    x_intercept = line.x_intercept
-    slope = line.slope
+    if line:
+        x_intercept = line.x_intercept
+        slope = line.slope
+    else:
+        return ("N/A", "N/A")
 
     if x_intercept > mid_right:
         # the lane center is right of the middle,
@@ -84,9 +90,9 @@ def suggest_direction(line: Line, width: int, forward_tol: int = 50) -> tuple[st
         # the lane center is in the middle region
         movement_direction = "forward"
 
-    if 1/slope > 0:
-        turn_direction = "counter-clockwise"
-    if 1/slope < 0:
-        turn_direction = "clockwise"
+    angle = np.round(np.rad2deg(np.arctan(-1 / slope)), 2)
+    if isclose(angle, 0, abs_tol=angle_tol):
+            angle = 0 # round to 0 if within 5 degrees
 
+    turn_direction = f"{angle} degrees"
     return (movement_direction, turn_direction)
