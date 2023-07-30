@@ -24,14 +24,14 @@ def draw_lines(
     """Draws each line in lines on `img`
 
     ### Parameters
-        img (npt.NDArray[any]): the image to draw lines on (copied!)
-        lines (list[Line]): the list of lines to draw
-        color (tuple[int, int, int], optional): the color to draw the lines as. Defaults to (0, 255, 0).
-        random (bool, optional): whether or not to pick a random color for each line. Defaults to False.
-        offset (bool, optional): whether or not to offset each line by height/2. Defaults to False.
+    - img (npt.NDArray[any]): the image to draw lines on (copied!)
+    - lines (list[Line]): the list of lines to draw
+    - color (tuple[int, int, int], optional): the color to draw the lines as. Defaults to (0, 255, 0).
+    - random (bool, optional): whether or not to pick a random color for each line. Defaults to False.
+    - offset (bool, optional): whether or not to offset each line by height/2. Defaults to False.
 
     ### Returns
-        npt.NDArray[any]: a copy of `img` with lines drawn on it
+    - npt.NDArray[any]: a copy of `img` with lines drawn on it
     """
     to_draw = img.copy()
     height = img.shape[0]
@@ -53,12 +53,12 @@ def draw_lanes(
     """Draws lanes lines, each in a unique color, on img.
 
     ### Parameters
-        img (npt.NDArray[any]): the image to draw on
-        lanes (list[tuple[Line, Line]]): the list of lanes to draw
-        offset (bool, optional): whether or not to offset each line by height/2. Defaults to False.
+    - img (npt.NDArray[any]): the image to draw on
+    - lanes (list[tuple[Line, Line]]): the list of lanes to draw
+    - offset (bool, optional): whether or not to offset each line by height/2. Defaults to False.
 
     ### Returns
-        npt.NDArray[any]: the modified image
+    - npt.NDArray[any]: the modified image
     """
     laned_img = img
     color = (0, 255, 0)
@@ -73,11 +73,11 @@ def group_data(labels: list[int], data: list[any]) -> dict[int, any]:
     """Group lines based on labels, which are expected to be the output of a DBSCAN fit.
 
     ### Parameters
-        labels (list[int]): the labels of the data, i.e. the clusters they should go to
-        data (list[any]): the data set
+    - labels (list[int]): the labels of the data, i.e. the clusters they should go to
+    - data (list[any]): the data set
 
     ### Returns
-        dict[int, any]: the data set mapped to their labels
+    - dict[int, any]: the data set mapped to their labels
     """
     grouped_data = {}
     for index, element in enumerate(data):
@@ -95,11 +95,11 @@ def dist(a: float | int, b: float | int) -> float | int:
     """returns the distance between `a` and `b`
 
     ### Parameters
-        a (float | int): the first element
-        b (float | int): the second element
+    - a (float | int): the first element
+    - b (float | int): the second element
 
     ### Returns
-        float | int: the distance between the elements
+    - float | int: the distance between the elements
     """
     return abs(a - b)
 
@@ -111,10 +111,10 @@ def to_gray(img: npt.NDArray[any]) -> npt.NDArray[any]:
     """the image converted to gray scale
 
     ### Parameters
-        img (npt.NDArray[any]): the image to convert
+    - img (npt.NDArray[any]): the image to convert
 
     ### Returns
-        npt.NDArray[any]: grayscale version of the image
+    - npt.NDArray[any]: grayscale version of the image
     """
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -123,10 +123,10 @@ def split(img: npt.NDArray[any]) -> npt.NDArray[any]:
     """Splits or slices the image in half, leaving only the bottom half
 
     ### Parameters
-        img (npt.NDArray[any]): the image to split
+    - img (npt.NDArray[any]): the image to split
 
     ### Returns
-        npt.NDArray[any]: the bottom half of the image
+    - npt.NDArray[any]: the bottom half of the image
     """
     height = img.shape[0]
     return img[int(height / 2) : height]
@@ -136,11 +136,11 @@ def to_blurred(img: npt.NDArray[any], kernel_size: int = 19) -> npt.NDArray[any]
     """Applies a Gaussian blur to the image.
 
     ### Parameters
-        img (npt.NDArray[any]): the image to blur
-        kernel_size (int, optional): the size of the kernel to convolve in blurring. Defaults to 19.
+    - img (npt.NDArray[any]): the image to blur
+    - kernel_size (int, optional): the size of the kernel to convolve in blurring. Defaults to 19.
 
     ### Returns
-        npt.NDArray[any]: the blurred image
+    - npt.NDArray[any]: the blurred image
     """
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
 
@@ -151,12 +151,12 @@ def to_bw(
     """Converts the image to black and white. Assumes that input is already in grayscale.
 
     ### Parameters
-        img (npt.NDArray[any]): the image to convert
-        t (int, optional): the threshold at which images are considered white. Defaults to 90.
-        white_value (int, optional): the value to set white pixels to. Defaults to 255.
+    - img (npt.NDArray[any]): the image to convert
+    - t (int, optional): the threshold at which images are considered white. Defaults to 90.
+    - white_value (int, optional): the value to set white pixels to. Defaults to 255.
 
     ### Returns
-        npt.NDArray[any]: the black and white image
+    - npt.NDArray[any]: the black and white image
     """
     _, bw_image = cv2.threshold(img, t, white_value, cv2.THRESH_BINARY)
     return bw_image
@@ -168,13 +168,13 @@ def find_edges(
     """Detects the edges of the image, using the Canny algorithm.
 
     ### Parameters
-        img (npt.NDArray[any]): the image to detect edges on. Typically this is already in grayscale or black and white.
-        t1 (int, optional): the lower threshold for Canny algorithm. Defaults to 50.
-        t2 (int, optional): the upper threshold for Canny algorithm. Defaults to 100.
-        aperture (int, optional): the size of the edge detection aperture. Defaults to 3.
+    - img (npt.NDArray[any]): the image to detect edges on. Typically this is already in grayscale or black and white.
+    - t1 (int, optional): the lower threshold for Canny algorithm. Defaults to 50.
+    - t2 (int, optional): the upper threshold for Canny algorithm. Defaults to 100.
+    - aperture (int, optional): the size of the edge detection aperture. Defaults to 3.
 
     ### Returns
-        npt.NDArray[any]: the image showing all detected edges
+    - npt.NDArray[any]: the image showing all detected edges
     """
     return cv2.Canny(img, threshold1=t1, threshold2=t2, apertureSize=aperture)
 
@@ -193,15 +193,15 @@ def find_lines(
     """Finds the line segments in the `edges` image. Assumes that `edges` has already been passed through a edge detection algorithm, such as canny.
 
     ### Parameters
-        edges (npt.NDArray[any]): the image to find lines in, e.g. the output of Canny
-        rho (int, optional): the resolution for Hough Lines. Defaults to 1.
-        theta (_type_, optional): the angle for Hough Lines. Defaults to np.pi/180.
-        threshold (int, optional): the number of votes which a Line must recieve to be counted. Defaults to 100.
-        min_line_length (int, optional): the lower threshold for Hough Lines. Defaults to 100.
-        max_line_gap (int, optional): the upper threshold for Hough Lines. Defaults to 20.
+    - edges (npt.NDArray[any]): the image to find lines in, e.g. the output of Canny
+    - rho (int, optional): the resolution for Hough Lines. Defaults to 1.
+    - theta (_type_, optional): the angle for Hough Lines. Defaults to np.pi/180.
+    - threshold (int, optional): the number of votes which a Line must recieve to be counted. Defaults to 100.
+    - min_line_length (int, optional): the lower threshold for Hough Lines. Defaults to 100.
+    - max_line_gap (int, optional): the upper threshold for Hough Lines. Defaults to 20.
 
     ### Returns
-        list[Line]: a list of Line segments found in the image.
+    - list[Line]: a list of Line segments found in the image.
     """
     lines = cv2.HoughLinesP(
         edges,
@@ -230,13 +230,13 @@ def group_lines(
     """Returns a dictionary containing lines that have been seperated into groups.
 
     ### Parameters
-        lines (list[Line]): the list of lines that need to be grouped
-        height (int): the height of the image. Required for calculating x-intercepts.
-        slope_tolerance (float, optional): the tolerance with which to group lines by slope. Defaults to 0.1.
-        x_intercept_tolerance (int, optional): the tolerance with which to group lines by x-intercept. Defaults to 50.
+    - lines (list[Line]): the list of lines that need to be grouped
+    - height (int): the height of the image. Required for calculating x-intercepts.
+    - slope_tolerance (float, optional): the tolerance with which to group lines by slope. Defaults to 0.1.
+    - x_intercept_tolerance (int, optional): the tolerance with which to group lines by x-intercept. Defaults to 50.
 
     ### Returns
-        dict[int: dict[int: list[Line]]] | None: the grouped lines, or None if len(lines) < 1
+    - dict[int: dict[int: list[Line]]] | None: the grouped lines, or None if len(lines) < 1
     """
     if len(lines) < 1:
         return None
@@ -272,12 +272,12 @@ def merge_lines(
     """Merges groups of lines into individual lines.
 
     ### Parameters
-        grouped_lines (dict[int : dict[int : list[Line]]]): the list of grouped lines, typically the output of `group_lines`
-        height (int): the height of the image, required for clipping the line segments
-        width (int): the width of the image, required for clipping the line segments
+    - grouped_lines (dict[int : dict[int : list[Line]]]): the list of grouped lines, typically the output of `group_lines`
+    - height (int): the height of the image, required for clipping the line segments
+    - width (int): the width of the image, required for clipping the line segments
 
     ### Returns
-        list[Line]: the list of merged lines
+    - list[Line]: the list of merged lines
     """
     merged_lines = []
     for _, slope_group in grouped_lines.items():
@@ -319,21 +319,18 @@ def merge_lines(
 # ==============
 # Lane Detection
 # ==============
-from skimage.draw import line
-
-
 def pixels_between(
     img: npt.NDArray[any], p1: tuple[int, int], p2: tuple[int, int]
 ) -> float:
     """Returns the average color of the pixels between point 1 and point 2.
 
     ### Parameters
-        img (npt.NDArray[any]): the image, assumed to be single channel (black and white)
-        p1 (tuple[int, int]): the first point
-        p2 (tuple[int, int]): the second point
+    - img (npt.NDArray[any]): the image, assumed to be single channel (black and white)
+    - p1 (tuple[int, int]): the first point
+    - p2 (tuple[int, int]): the second point
 
     ### Returns
-        float: the average color value between the two points
+    - float: the average color value between the two points
     """
     # we will index by pixels, so make sure they are within the confines of the image
     # print(p1)
@@ -342,7 +339,7 @@ def pixels_between(
     y_list = np.clip([p1[1], p2[1]], 0, img.shape[0] - 1)
     x_list.sort()
     y_list.sort()
-    rr, cc = line(x_list[0], y_list[0], x_list[1], y_list[1])
+    rr, cc = Line(x_list[0], y_list[0], x_list[1], y_list[1]).pixels_between()
     average_value = np.average(img[cc, rr])
     return average_value
 
@@ -357,14 +354,14 @@ def detect_lanes(
     """Detects the lanes, or pairs of lines, within the given set of lines. Requires the image in order to check for pixels between potential pairs.
 
     ### Parameters
-        img (npt.NDArray[any]): the image which lines are being detected on
-        lines (list[Line]): the list of lines to pair up
-        x_tolerance (int): the maximum difference in x-intercepts in which two lines could be a pair. Defaults to 300 pixels.
-        y_tolerance (int): the maximum difference in y-intercepts in which two lines could be a pair. Defaults to 300 pixels.
-        darkness_threshold (float): the maximum average value of pixels between the two lines for them to be considered a lane. Defaults to 10.0.
+    - img (npt.NDArray[any]): the image which lines are being detected on
+    - lines (list[Line]): the list of lines to pair up
+    - x_tolerance (int): the maximum difference in x-intercepts in which two lines could be a pair. Defaults to 300 pixels.
+    - y_tolerance (int): the maximum difference in y-intercepts in which two lines could be a pair. Defaults to 300 pixels.
+    - darkness_threshold (float): the maximum average value of pixels between the two lines for them to be considered a lane. Defaults to 10.0.
 
     ### Returns
-        list[tuple[Line, Line]]: the list of paired lines, or lanes
+    - list[tuple[Line, Line]]: the list of paired lines, or lanes
     """
     lanes = []  # the return list
     lines.sort(key=lambda x: x.x_intercept)

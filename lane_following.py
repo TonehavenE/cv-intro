@@ -9,11 +9,11 @@ def merge_lane_lines(lanes: list[tuple[Line, Line]], height: int) -> list[Line]:
     """Combines the lines of each lane to produce a single center line for each.
 
     ### Parameters
-        lanes (list[tuple[Line, Line]]): the list of lanes
-        height (int): the height of the image
+    - lanes (list[tuple[Line, Line]]): the list of lanes
+    - height (int): the height of the image
 
     ### Returns
-        list[Line]: the list of center lines
+    - list[Line]: the list of center lines
     """
     center_lines = []  # output list
     for lane in lanes:
@@ -32,21 +32,21 @@ def pick_center_line(center_lines: list[Line], width: int) -> Line:
     """Picks the center line (line closest to center of image) from a list of lines
 
     ### Parameters
-        center_lines (list[Line]): the list of lines
-        width (int): width of the image
+    - center_lines (list[Line]): the list of lines
+    - width (int): width of the image
 
     ### Returns
-        Line: the line closest to center
+    - Line: the line closest to center
     """
     def closest(lines: list[Line], k: int) -> Line:
         """The element in the list closest to `k`.
 
         ### Parameters
-            lines (list[Line]): the list of lines
-            k (int): the value to compare against
+        - lines (list[Line]): the list of lines
+        - k (int): the value to compare against
 
         ### Returns
-            Line: the Line with an x-intercept closest to `k`
+        - Line: the Line with an x-intercept closest to `k`
         """
         if len(lines) > 0:
             x = np.asarray([line.x_intercept for line in lines])
@@ -60,13 +60,13 @@ def suggest_direction(line: Line, width: int, forward_tol: int = 50, angle_tol: 
     """Suggests which direction the AUV should move in based off a line.
 
     ### Parameters
-        line (Line): the center of the lane closest to the AUV
-        width (int): the width of the image
-        forward_tol (int, optional): the number of pixels around the middle where the AUV should continue straight. Defaults to 50.
-        angle_tol (int, optional): the range of angles that are considered straight.
+    - line (Line): the center of the lane closest to the AUV
+    - width (int): the width of the image
+    - forward_tol (int, optional): the number of pixels around the middle where the AUV should continue straight. Defaults to 50.
+    - angle_tol (int, optional): the range of angles that are considered straight.
 
     ### Returns
-        tuple[str, str]: (movement_direction, turn_direction)
+    - tuple[str, str]: (movement_direction, turn_direction)
     """
     mid = width / 2
     mid_left = mid - forward_tol
