@@ -7,6 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from matplotlib import pyplot as plt
 from sklearn.cluster import DBSCAN
+from typing import Union
 
 from Line import *
 
@@ -91,15 +92,15 @@ def group_data(labels: list[int], data: list[any]) -> dict[int, any]:
     return grouped_data
 
 
-def dist(a: float | int, b: float | int) -> float | int:
+def dist(a: Union[float, int], b: Union[float, int]) -> Union[float, int]:
     """returns the distance between `a` and `b`
 
     ### Parameters
-    - a (float | int): the first element
-    - b (float | int): the second element
+    - a (Union[float, int]): the first element
+    - b (Union[float, int]): the second element
 
     ### Returns
-    - float | int: the distance between the elements
+    - Union[float, int]: the distance between the elements
     """
     return abs(a - b)
 
@@ -226,7 +227,7 @@ def group_lines(
     height: int,
     slope_tolerance: float = 0.1,
     x_intercept_tolerance: int = 50,
-) -> dict[int : dict[int : list[Line]]] | None:
+):
     """Returns a dictionary containing lines that have been seperated into groups.
 
     ### Parameters
@@ -267,7 +268,7 @@ def group_lines(
 
 
 def merge_lines(
-    grouped_lines: dict[int : dict[int : list[Line]]], height: int, width: int
+    grouped_lines, height: int, width: int
 ) -> list[Line]:
     """Merges groups of lines into individual lines.
 

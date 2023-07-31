@@ -48,7 +48,7 @@ if __name__ == "__main__":
     ret, frame1 = cap.read()
     height, width, layers = frame1.shape
     size = (width, height)
-    out = cv2.VideoWriter("rendered_video.avi", cv2.VideoWriter_fourcc(*'DIVX'), 30, size)
+    out = cv2.VideoWriter("rendered_video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, size)
 
     count = 0 # the number of frames since the last    
     while ret:
