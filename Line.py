@@ -1,4 +1,4 @@
-from numpy import power
+from numpy import power, sqrt
 from skimage.draw import line
 
 # CONSTANTS
@@ -108,15 +108,23 @@ class Line:
     def is_paired(self) -> bool:
         """Returns whether the line is already paired with another line.
 
-        Returns:
+        ### Returns
         - bool: if the line is paired
         """
         return self.paired
+    
+    def length(self) -> float:
+        """The length of the line.
+
+        ### Returns
+        - float: the length of the line
+        """
+        return sqrt(power(self.x2 - self.x1, 2) + power(self.y2 - self.y1, 2))
 
     def __str__(self) -> str:
         """The string representation of the line.
 
-        Returns:
+        ### Returns
         - str: "p1: (x1, y1), p2: (x2, y2), slope: m, x-intercept: x, y-intercept: b"
         """
         return f"p1: ({self.x1}, {self.y1}), p2: ({self.x2}, {self.y2}), slope: {self.slope:.2f}, x-intercept: {self.x_intercept}, y-intercept: {self.y_intercept}"

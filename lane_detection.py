@@ -340,10 +340,12 @@ def pixels_between(
     y_list = np.clip([p1[1], p2[1]], 0, img.shape[0] - 1)
     x_list.sort()
     y_list.sort()
-    rr, cc = Line(x_list[0], y_list[0], x_list[1], y_list[1]).pixels_between()
-    average_value = np.average(img[cc, rr])
-    return average_value
-
+    line = Line(x_list[0], y_list[0], x_list[1], y_list[1])
+    if line.length() > 5:
+        rr, cc = line.pixels_between()
+        average_value = np.average(img[cc, rr])
+        return average_value
+    return 255 # if the gap 
 
 def detect_lanes(
     img: npt.NDArray[any],
