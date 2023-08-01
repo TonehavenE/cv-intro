@@ -27,7 +27,6 @@ if __name__ == "__main__":
     size = (width, height)
 
     out = cv2.VideoWriter("april_tag_render.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, size)
-    fourcc = cv2.VideoWriter_fourcc(*"XVID")
 
     count = 0  # the amount of frames that have been read
     # create PID objects, no idea what the right values are
@@ -38,9 +37,6 @@ if __name__ == "__main__":
     while ret:
         ret, frame = cap.read()
         if not ret:
-            break
-
-        if count > 50:
             break
 
         print(f"now on frame {count}...")
@@ -57,12 +53,12 @@ if __name__ == "__main__":
                 positions, frame.shape[0], frame.shape[1]
             )
             outputs = april_tags.output_from_tags(errors, horizontal_pid, vertical_pid)
-            frame = april_tags.draw_outputs(frame, outputs, tags)
             frame = april_tags.render_tags(tags, frame)
+            frame = april_tags.draw_outputs(frame, outputs, tags)
 
         out.write(frame)
         count += 1
 
-cap.release()
-out.release()
-print("Finished rendering the video.")
+    cap.release()
+    out.release()
+    print("Finished rendering the video.")

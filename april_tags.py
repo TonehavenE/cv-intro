@@ -72,25 +72,27 @@ def output_from_tags(errors, horizontal_pid: PID, vertical_pid: PID) -> tuple[li
     return (horizontal_output, vertical_output)
 
 def draw_outputs(img, outputs: tuple[list[float], list[float]], tags):
+    h_off_center = 25
+    v_off_center = 50
     for i in range(len(outputs) - 1):
         tag = tags[i]
         horizontal = outputs[0][i]
         vertical = outputs[1][i]
         cv2.putText(
             img,
-            f"Horizontal: {horizontal * 100:.2f}%",
-            org=(int(tag.corners[0][0]), int(tag.corners[0][1])),
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 255, 0),
+            f"Horizontal: {horizontal:.2f}%",
+            org=(int(img.shape[1]/2) + h_off_center, int(img.shape[0]/2) + v_off_center),
+            fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+            fontScale=1.5,
+            color=(0, 0, 255),
         )
         cv2.putText(
             img,
-            f"Vertical: {vertical * 100:.2f}%",
-            org=(int(tag.corners[3][0]), int(tag.corners[3][1])),
-            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
-            color=(0, 255, 0),
+            f"Vertical: {vertical:.2f}%",
+            org=(int(img.shape[1]/2) + h_off_center, int(img.shape[0]/2)),
+            fontFace=cv2.FONT_HERSHEY_TRIPLEX,
+            fontScale=1.5,
+            color=(0, 0, 255),
         )
     return img
 
@@ -114,5 +116,6 @@ def render_tags(tags, img):
                 (0, 255, 0),
                 thickness=10,
             )
+        cv2.line(img, (int(img.shape[1]/2), int(img.shape[0]/2)), (int(tag.center[0]), int(tag.center[1])), (0, 0, 255), thickness=10)
 
     return img
