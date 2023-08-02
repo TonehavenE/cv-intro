@@ -34,8 +34,15 @@ def render_frame(frame):
         # Lane picking
         center_lines = merge_lane_lines(lanes, height) # find the center of each lane
         center_line = pick_center_line(center_lines, width) # find the closest lane
-        (move, turn) = suggest_direction(center_line, width) # textual suggestion of how to move
-        text = f"Move - {move} | Turn - {turn}"
+        (longitudinal, lateral, turn) = error_from_line(center_line, width) # textual suggestion of how to move
+        # print(f"{longitudinal = }, {lateral = }, {turn = }")
+        turn = np.rad2deg(turn)
+        if longitudinal == 100:
+            text = f"Move forward: {longitudinal:.2f} | Turn: {turn:.2f}"
+        elif lateral != 0:
+            text = f"Move lateral: {lateral:.2f}% | Turn: {turn:.2f}"
+        else:
+            text = f"Don't move"
 
         # Drawing
         # frame = draw_lanes(frame, lanes, offset=True)

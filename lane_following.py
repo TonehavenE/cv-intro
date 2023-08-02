@@ -28,6 +28,7 @@ def merge_lane_lines(lanes: list[tuple[Line, Line]], height: int) -> list[Line]:
         )
     return center_lines
 
+
 def pick_center_line(center_lines: list[Line], width: int) -> Line:
     """Picks the center line (line closest to center of image) from a list of lines
 
@@ -38,6 +39,7 @@ def pick_center_line(center_lines: list[Line], width: int) -> Line:
     ### Returns
     - Line: the line closest to center
     """
+
     def closest(lines: list[Line], k: int) -> Line:
         """The element in the list closest to `k`.
 
@@ -52,11 +54,69 @@ def pick_center_line(center_lines: list[Line], width: int) -> Line:
             x = np.asarray([line.x_intercept for line in lines])
             idx = (np.abs(x - k)).argmin()
             return lines[idx]
-    
-    closest_line = closest(center_lines, width/2)
+
+    closest_line = closest(center_lines, width / 2)
     return closest_line
 
-def suggest_direction(line: Line, width: int, forward_tol: int = 50, angle_tol: int = 5) -> tuple[str, str]:
+
+def angle_from_line(line: Line, angle_tol: int = 5) -> float:
+    if line:
+        slope = line.slope
+    else:
+        return 0
+
+    angle = np.arctan(-1 / slope)
+    if isclose(np.rad2deg(angle), 0, abs_tol=angle_tol):
+        angle = 0  # round to 0 if within 5 degrees
+
+    return angle
+
+
+def movement_from_line(
+    line: Line, width: int, forward_tol: int = 50
+) -> tuple[float, float]:
+    """Returns the suggestion of movement from a line.
+
+    Args:
+        line (Line): the line the robot is trying to follow
+        width (int): the width of the image
+        forward_tol (int, optional): the tolerance around which you go forward. Defaults to 50.
+
+    Returns:
+        tuple[float, float]: the longitudinal and lateral error
+    """
+    mid = width / 2
+    mid_left = mid - forward_tol
+    mid_right = mid + forward_tol
+    lateral = 0
+    longitudinal = 0
+
+    if line:
+        x_intercept = np.clip(line.x_intercept, 0, width)
+    else:
+        return (lateral, longitudinal)
+
+    if x_intercept > mid_right:
+        # the lane center is right of the middle
+        lateral = ((x_intercept - mid) / width) * 100
+        longitudinal = 0
+
+    elif x_intercept < mid_left:
+        # the lane center is left of the middle
+        lateral = ((x_intercept - mid) / width) * 100
+        longitudinal = 0
+
+    else:
+        # the lane center is in the middle region
+        lateral = 0
+        longitudinal = 100
+
+    return (longitudinal, lateral)
+
+
+def error_from_line(
+    line: Line, width: int, forward_tol: int = 50, angle_tol: int = 5
+) -> tuple[str, str]:
     """Suggests which direction the AUV should move in based off a line.
 
     ### Parameters
@@ -68,31 +128,6 @@ def suggest_direction(line: Line, width: int, forward_tol: int = 50, angle_tol: 
     ### Returns
     - tuple[str, str]: (movement_direction, turn_direction)
     """
-    mid = width / 2
-    mid_left = mid - forward_tol
-    mid_right = mid + forward_tol
-
-    if line:
-        x_intercept = np.clip(line.x_intercept, 0, width)
-        slope = line.slope
-    else:
-        return ("N/A", "N/A")
-
-    if x_intercept > mid_right:
-        # the lane center is right of the middle
-        movement_direction = f"lateral: {((x_intercept - mid) / width) * 100:.2f}%"
-
-    elif x_intercept < mid_left:
-        # the lane center is left of the middle
-        movement_direction = f"lateral: {((x_intercept - mid) / width) * 100:.2f}%"
-
-    else:
-        # the lane center is in the middle region
-        movement_direction = "forward: 100%"
-
-    angle = np.rad2deg(np.arctan(-1 / slope))
-    if isclose(angle, 0, abs_tol=angle_tol):
-            angle = 0 # round to 0 if within 5 degrees
-
-    turn_direction = f"{angle:.2f} degrees"
-    return (movement_direction, turn_direction)
+    yaw = angle_from_line(line, angle_tol)
+    longitudinal, lateral = movement_from_line(line, width, forward_tol)
+    return (longitudinal, lateral, yaw)

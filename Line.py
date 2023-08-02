@@ -5,13 +5,12 @@ from skimage.draw import line
 VERTICAL_SLOPE = power(10, 10)
 HORIZONTAL_SLOPE = 0.00000000000001
 NO_X_INTERCEPT = power(10, 10)
+IMAGE_HEIGHT = int(1080/2)
 
 class Line:
     """Represents a line segment given two points. Has methods for calculating slope, x-intercept, and the x or y coordinate given the other.
     """
-    img_height = int(1080/2)
-
-    def __init__(self, x1: int, y1: int, x2: int, y2: int):
+    def __init__(self, x1: int, y1: int, x2: int, y2: int, image_height: int = IMAGE_HEIGHT):
         """Constructs a Line object given two points, (x1, y1) and (x2, y2)
 
         ### Parameters
@@ -26,6 +25,7 @@ class Line:
         self.y1 = int(y1)
         self.x2 = int(x2)
         self.y2 = int(y2)
+        self.image_height = image_height
         self.slope = self.calculate_slope()
         self.x_intercept = self.calculate_x_intercept()
         # self.x_of = np.vectorize(self.x)
@@ -56,7 +56,7 @@ class Line:
             return NO_X_INTERCEPT
         else:
             # return ((self.slope * self.x1) - self.y1) / self.slope
-            return round(((self.img_height - self.y1) / self.slope) + self.x1, 0)
+            return round(((self.image_height - self.y1) / self.slope) + self.x1, 0)
 
     def get_points(self) -> list[int, int, int, int]:
         """Returns the points of the line.

@@ -204,6 +204,7 @@ def find_lines(
     ### Returns
     - list[Line]: a list of Line segments found in the image.
     """
+    height = edges.shape[0]
     lines = cv2.HoughLinesP(
         edges,
         rho=rho,
@@ -213,7 +214,7 @@ def find_lines(
         maxLineGap=max_line_gap,
     )
     try:
-        lines = [Line(line[0][0], line[0][1], line[0][2], line[0][3]) for line in lines]
+        lines = [Line(line[0][0], line[0][1], line[0][2], line[0][3], image_height=height) for line in lines]
         return lines
     except TypeError:
         # could not iterate over lines, because none were detected
