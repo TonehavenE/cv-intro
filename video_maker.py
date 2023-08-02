@@ -35,7 +35,7 @@ def render_frame(frame):
         center_lines = merge_lane_lines(lanes, height) # find the center of each lane
         center_line = pick_center_line(center_lines, width) # find the closest lane
         (move, turn) = suggest_direction(center_line, width) # textual suggestion of how to move
-        text = f"The AUV should move {move} and turn {turn}"
+        text = f"Move - {move} | Turn - {turn}"
 
         # Drawing
         # frame = draw_lanes(frame, lanes, offset=True)

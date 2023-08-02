@@ -73,26 +73,26 @@ def suggest_direction(line: Line, width: int, forward_tol: int = 50, angle_tol: 
     mid_right = mid + forward_tol
 
     if line:
-        x_intercept = line.x_intercept
+        x_intercept = np.clip(line.x_intercept, 0, width)
         slope = line.slope
     else:
         return ("N/A", "N/A")
 
     if x_intercept > mid_right:
-        # the lane center is right of the middle,
-        movement_direction = "right"
+        # the lane center is right of the middle
+        movement_direction = f"lateral: {((x_intercept - mid) / width) * 100:.2f}%"
 
     elif x_intercept < mid_left:
         # the lane center is left of the middle
-        movement_direction = "left"
+        movement_direction = f"lateral: {((x_intercept - mid) / width) * 100:.2f}%"
 
     else:
         # the lane center is in the middle region
-        movement_direction = "forward"
+        movement_direction = "forward: 100%"
 
-    angle = np.round(np.rad2deg(np.arctan(-1 / slope)), 2)
+    angle = np.rad2deg(np.arctan(-1 / slope))
     if isclose(angle, 0, abs_tol=angle_tol):
             angle = 0 # round to 0 if within 5 degrees
 
-    turn_direction = f"{angle} degrees"
+    turn_direction = f"{angle:.2f} degrees"
     return (movement_direction, turn_direction)
